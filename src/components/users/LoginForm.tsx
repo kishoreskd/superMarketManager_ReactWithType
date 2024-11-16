@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
+import { observer } from "mobx-react-lite";
+import CreateAccountForm from "./CreateAccountForm";
+import ForgetAccountForm from "./ForgetAccountForm";
+import { useStore } from '../../app/stores/store';
 
-const LoginForm: React.FC = () => {
+const LoginForm: React.FC = observer(() => {
+  const { modalStore } = useStore();
   const [credentials, setCredentials] = useState({
     userIdOrPhone: '',
     password: '',
@@ -9,6 +14,14 @@ const LoginForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Login attempted with:', credentials);
+  };
+
+  const handleCreateAccount = () => {
+    modalStore.openModal(<CreateAccountForm onClose={modalStore.closeModal} />);
+  };
+
+  const handleForgotPassword = () => {
+    modalStore.openModal(<ForgetAccountForm onClose={modalStore.closeModal} />);
   };
 
   return (
@@ -47,19 +60,29 @@ const LoginForm: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
           >
             Login
           </button>
         </form>
 
         <div className="mt-4 flex justify-between">
-          <a href="#" className="text-blue-500">Forgot Password?</a>
-          <a href="#" className="text-blue-500">Create Account</a>
+          <button
+            onClick={handleForgotPassword}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Forgot Password?
+          </button>
+          <button
+            onClick={handleCreateAccount}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Create Account
+          </button>
         </div>
       </div>
     </div>
   );
-};
+});
 
 export default LoginForm;
