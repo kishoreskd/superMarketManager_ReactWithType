@@ -1,12 +1,13 @@
-import './App.css'
-import 'semantic-ui-css/semantic.min.css';
+import React from 'react';
+import LoginForm from './components/users/LoginForm';
+import './index.css';
 
 function App() {
-
   return (
-    <>
-    </>
-  )
+    <div className="App">
+      <LoginForm />
+    </div>
+  );
 }
 
-export default App
+export default App; 
