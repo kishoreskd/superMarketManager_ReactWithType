@@ -1,13 +1,19 @@
 import { createContext, useContext } from "react";
 import ModalStore from "./ModalStore";
+import CommonStore from "./CommonStore";
+import AuthStore from "./AuthStore";
 
 interface Store {
     modalStore: ModalStore;
+    commonStore: CommonStore;
+    authStore: AuthStore;
     // Add other stores here as needed
 }
 
 export const store: Store = {
-    modalStore: new ModalStore()
+    modalStore: new ModalStore(),
+    commonStore: new CommonStore(),
+    authStore: new AuthStore()
     // Initialize other stores here
 };
 

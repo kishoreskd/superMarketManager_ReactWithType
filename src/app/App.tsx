@@ -1,13 +1,12 @@
-import React from 'react';
-import LoginForm from '../components/users/LoginForm';
 import './style.css';
-import ModalContainer from './models/common/modals/ModalContainer';
+import ModalContainer from './common/modals/ModalContainer';
+import { Outlet } from 'react-router-dom';
 
 function App() {
   return (
     <div className="App">
-      <ModalContainer />
-      <LoginForm />
+      <ModalContainer />  
+      <Outlet />  
     </div>
   );
 }
