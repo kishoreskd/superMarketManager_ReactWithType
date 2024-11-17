@@ -7,6 +7,8 @@ import Customer from "../../components/customer/Customer";
 import CustomerForm from "../../components/customer/CustomerForm";
 import Order from "../../components/order/Order";
 import OrderForm from "../../components/order/OrderForm";
+import Coupon from "../../components/coupon/Coupon";
+import CouponForm from "../../components/coupon/CouponForm";
 
 export const routes: RouteObject[] = [
     {
@@ -26,7 +28,9 @@ export const routes: RouteObject[] = [
             { path: 'orders/new', element: <OrderForm /> },
             { path: 'orders/edit/:id', element: <OrderForm /> },
             { path: 'staff', element: <div>Staff Content</div> },
-            { path: 'coupons', element: <div>Coupons Content</div> },
+            { path: 'coupons', element: <Coupon /> },
+            { path: 'coupons/new', element: <CouponForm /> },
+            { path: 'coupons/edit/:id', element: <CouponForm /> },
             { path: 'feedback', element: <div>Feedback Content</div> },
         ]
     }
