@@ -16,59 +16,82 @@ export default class StaffStore {
             this.loading = true;
             const result = await agent.StaffApi.getStaff() as any;
             runInAction(() => {
+                this.staffRegistry.clear();
                 result.forEach((staff: Staff) => {
                     this.staffRegistry.set(staff.ws_employee_id, staff);
                 });
-                this.loading = false;
             });
         } catch (error) {
             console.error('Error loading staff:', error);
-            this.loading = false;
-        }
-    }
-
-    createStaff = async (staff: Staff) => {
-        try {
-            this.loading = true;
-            await agent.StaffApi.addStaff(staff);
+        } finally {
             runInAction(() => {
-                this.staffRegistry.set(staff.ws_employee_id, staff);
                 this.loading = false;
             });
-        } catch (error) {
-            console.error('Error creating staff:', error);
-            this.loading = false;
-            throw error;
         }
     }
 
-    updateStaff = async (staff: Staff) => {
+    createStaff = async (staffData: Staff) => {
         try {
             this.loading = true;
-            await agent.StaffApi.updateStaff(staff);
+            const result = await agent.StaffApi.addStaff(staffData) as any;
             runInAction(() => {
-                this.staffRegistry.set(staff.ws_employee_id, staff);
+                this.staffRegistry.set(staffData.ws_employee_id, staffData);
+            });
+            return result;
+        } catch (error) {
+            console.error('Error creating staff:', error);
+            throw error;
+        } finally {
+            runInAction(() => {
                 this.loading = false;
+            });
+        }
+    }
+
+    updateStaff = async (staffData: Staff) => {
+        try {
+            this.loading = true;
+            await agent.StaffApi.updateStaff(staffData);
+            runInAction(() => {
+                this.staffRegistry.set(staffData.ws_employee_id, staffData);
             });
         } catch (error) {
             console.error('Error updating staff:', error);
-            this.loading = false;
             throw error;
+        } finally {
+            runInAction(() => {
+                this.loading = false;
+            });
         }
     }
 
-    deleteStaff = async (id: string) => {
+    loadStaffMember = async (id: string) => {
+        let staff = this.staffRegistry.get(id);
+        if (staff) {
+            this.selectedStaff = staff;
+            return staff;
+        }
         try {
             this.loading = true;
-            await agent.StaffApi.deleteStaff(id);
+            const result = await agent.StaffApi.getStaff() as any;
+            staff = result.find((s: Staff) => s.ws_employee_id === id);
+            if (staff) {
+                runInAction(() => {
+                    this.staffRegistry.set(staff!.ws_employee_id, staff!);
+                    this.selectedStaff = staff;
+                });
+            }
+            return staff;
+        } catch (error) {
+            console.error('Error loading staff member:', error);
+        } finally {
             runInAction(() => {
-                this.staffRegistry.delete(id);
                 this.loading = false;
             });
-        } catch (error) {
-            console.error('Error deleting staff:', error);
-            this.loading = false;
-            throw error;
         }
+    }
+
+    get staffList() {
+        return Array.from(this.staffRegistry.values());
     }
 } 

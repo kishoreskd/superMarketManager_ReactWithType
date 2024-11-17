@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useStore } from '../../app/stores/store';
 import Pagination from '../../app/common/pagination/Pagination';
 import { usePagination } from '../../app/common/pagination/usePagination';
+import LoadingComponent from "../../layout/LoadingContainer";
 
 const Coupon = observer(() => {
     const { couponStore } = useStore();
@@ -16,7 +17,7 @@ const Coupon = observer(() => {
     const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = 
         usePagination(coupons);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <LoadingComponent content="Loading coupons..." />;
 
     return (
         <div className="p-6">

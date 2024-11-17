@@ -1,16 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../app/stores/store';
 import { Staff } from '../../app/models/Staff';
-
-interface StaffFormData {
-    ws_employee_id: string;
-    ws_employee_name: string;
-    ws_employee_email: string;
-    ws_employee_phno: string;
-    ws_role: 'MANAGER' | 'BILLER' | 'SUPERVISOR' | 'FACILITY';
-}
 
 const StaffForm = observer(() => {
     const navigate = useNavigate();
@@ -18,7 +10,7 @@ const StaffForm = observer(() => {
     const { staffStore } = useStore();
     const [errors, setErrors] = useState<Partial<Staff>>({});
     
-    const [formData, setFormData] = useState<StaffFormData>({
+    const [formData, setFormData] = useState<Staff>({
         ws_employee_id: '',
         ws_employee_name: '',
         ws_employee_email: '',
@@ -26,27 +18,42 @@ const StaffForm = observer(() => {
         ws_role: 'MANAGER'
     });
 
-    const validateForm = () => {
-        const newErrors: Partial<StaffFormData> = {};
+    useEffect(() => {
+        if (id) {
+            loadStaff();
+        }
+    }, [id]);
 
-        // Employee ID validation
+    const loadStaff = async () => {
+        if (id) {
+            try {
+                const staff = await staffStore.loadStaffMember(id);
+                if (staff) {
+                    setFormData(staff);
+                }
+            } catch (error) {
+                console.error('Error loading staff member:', error);
+            }
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors: Partial<Staff> = {};
+
         if (!formData.ws_employee_id) {
             newErrors.ws_employee_id = 'Employee ID is required';
         } else if (!/^\d{5}$/.test(formData.ws_employee_id)) {
             newErrors.ws_employee_id = 'Employee ID must be 5 digits';
         }
 
-        // Email validation
         if (!formData.ws_employee_email) {
             newErrors.ws_employee_email = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.com$/.test(formData.ws_employee_email)) {
             newErrors.ws_employee_email = 'Invalid email format';
         }
 
-        // Other required field validations
         if (!formData.ws_employee_name) newErrors.ws_employee_name = 'Name is required';
         if (!formData.ws_employee_phno) newErrors.ws_employee_phno = 'Phone number is required';
-        // if (!formData.ws_role) newErrors.ws_role = 'Role is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -69,6 +76,16 @@ const StaffForm = observer(() => {
         }
     };
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    if (staffStore.loading) return <div>Loading...</div>;
+
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">{id ? 'Edit Staff Member' : 'Add New Staff Member'}</h1>
@@ -81,10 +98,12 @@ const StaffForm = observer(() => {
                         </label>
                         <input
                             type="text"
+                            name="ws_employee_id"
                             value={formData.ws_employee_id}
-                            onChange={(e) => setFormData({...formData, ws_employee_id: e.target.value})}
+                            onChange={handleChange}
                             className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                             maxLength={5}
+                            disabled={!!id}
                         />
                         {errors.ws_employee_id && (
                             <p className="text-red-500 text-sm mt-1">{errors.ws_employee_id}</p>
@@ -97,8 +116,9 @@ const StaffForm = observer(() => {
                         </label>
                         <input
                             type="text"
+                            name="ws_employee_name"
                             value={formData.ws_employee_name}
-                            onChange={(e) => setFormData({...formData, ws_employee_name: e.target.value})}
+                            onChange={handleChange}
                             className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                         />
                         {errors.ws_employee_name && (
@@ -112,8 +132,9 @@ const StaffForm = observer(() => {
                         </label>
                         <input
                             type="email"
+                            name="ws_employee_email"
                             value={formData.ws_employee_email}
-                            onChange={(e) => setFormData({...formData, ws_employee_email: e.target.value})}
+                            onChange={handleChange}
                             className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                         />
                         {errors.ws_employee_email && (
@@ -127,8 +148,9 @@ const StaffForm = observer(() => {
                         </label>
                         <input
                             type="tel"
+                            name="ws_employee_phno"
                             value={formData.ws_employee_phno}
-                            onChange={(e) => setFormData({...formData, ws_employee_phno: e.target.value})}
+                            onChange={handleChange}
                             className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                         />
                         {errors.ws_employee_phno && (
@@ -141,8 +163,9 @@ const StaffForm = observer(() => {
                             Role
                         </label>
                         <select
+                            name="ws_role"
                             value={formData.ws_role}
-                            onChange={(e) => setFormData({...formData, ws_role: e.target.value as StaffFormData['ws_role']})}
+                            onChange={handleChange}
                             className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="MANAGER">Manager</option>
@@ -161,14 +184,16 @@ const StaffForm = observer(() => {
                         type="button"
                         onClick={() => navigate('/staff')}
                         className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"
+                        disabled={staffStore.loading}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        disabled={staffStore.loading}
                     >
-                        {id ? 'Update' : 'Save'}
+                        {staffStore.loading ? 'Saving...' : (id ? 'Update' : 'Save')}
                     </button>
                 </div>
             </form>

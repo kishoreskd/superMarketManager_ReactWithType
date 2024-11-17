@@ -1,65 +1,49 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../app/stores/store';
 import Pagination from '../../app/common/pagination/Pagination';
 import { usePagination } from '../../app/common/pagination/usePagination';
+import { Staff as StaffType } from '../../app/models/Staff';
+import LoadingComponent from '../../layout/LoadingContainer';
 
-interface IStaff {
-    ws_employee_id: string;
-    ws_employee_name: string;
-    ws_employee_email: string;
-    ws_employee_phno: string;
-    ws_role: 'MANAGER' | 'BILLER' | 'SUPERVISOR' | 'FACILITY';
-}
+const Staff = observer(() => {
+    const { staffStore } = useStore();
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } =
+        usePagination<StaffType>(staffStore.staffList);
 
-const Staff = () => {
-    const [staffMembers] = useState<IStaff[]>([
-        {
-            ws_employee_id: '12345',
-            ws_employee_name: 'John Doe',
-            ws_employee_email: 'john@example.com',
-            ws_employee_phno: '123-456-7890',
-            ws_role: 'MANAGER'
-        },
-        {
-            ws_employee_id: '12346',
-            ws_employee_name: 'Jane Smith',
-            ws_employee_email: 'jane@example.com',
-            ws_employee_phno: '098-765-4321',
-            ws_role: 'SUPERVISOR'
-        },
-        // Add more dummy data
-    ]);
-
-    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(staffMembers);
+    useEffect(() => {
+        staffStore.loadStaff();
+    }, [staffStore]);
 
     const handleDelete = async (employeeId: string) => {
-        if (window.confirm('Are you sure you want to delete this staff member?')) {
-            try {
-                // API call to delete staff member
-                // await deleteStaff(employeeId);
-                console.log('Delete staff member:', employeeId);
-            } catch (error) {
-                console.error('Error deleting staff member:', error);
-            }
-        }
+        // if (window.confirm('Are you sure you want to delete this staff member?')) {
+        //     try {
+        //         await staffStore.deleteStaff(employeeId);
+        //     } catch (error) {
+        //         console.error('Error deleting staff member:', error);
+        //     }
+        // }
     };
 
-    const getRoleColor = (role: string) => {
+    const getRoleColor = (role: StaffType['ws_role']) => {
         const colors = {
             MANAGER: 'bg-purple-100 text-purple-800',
             BILLER: 'bg-blue-100 text-blue-800',
             SUPERVISOR: 'bg-green-100 text-green-800',
             FACILITY: 'bg-yellow-100 text-yellow-800'
         };
-        return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+        return colors[role] || 'bg-gray-100 text-gray-800';
     };
+
+    if (staffStore.loading) return <LoadingComponent content='Loading staff...' />;
 
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Staff Management</h1>
-                <Link 
-                    to="/staff/new" 
+                <Link
+                    to="/staff/new"
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                     Add New Staff
@@ -92,13 +76,13 @@ const Staff = () => {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-3">
-                                        <Link 
+                                        <Link
                                             to={`/staff/edit/${staff.ws_employee_id}`}
                                             className="text-blue-500 hover:text-blue-700"
                                         >
                                             Edit
                                         </Link>
-                                        <button 
+                                        <button
                                             onClick={() => handleDelete(staff.ws_employee_id)}
                                             className="text-red-500 hover:text-red-700"
                                         >
@@ -120,6 +104,6 @@ const Staff = () => {
             </div>
         </div>
     );
-};
+});
 
 export default Staff;

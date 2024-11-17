@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../app/stores/store';
 import { Customer } from '../../app/models/Customer';
+import LoadingComponent from "../../layout/LoadingContainer";
 
 const CustomerForm = observer(() => {
     const navigate = useNavigate();
@@ -41,15 +42,15 @@ const CustomerForm = observer(() => {
 
     const validateForm = () => {
         const newErrors: Partial<Customer> = {};
-        
+
         if (!formData.ws_customername.trim()) {
             newErrors.ws_customername = 'Name is required';
         }
-        
+
         if (!formData.ws_phoneno.trim()) {
             newErrors.ws_phoneno = 'Phone is required';
         }
-        
+
         if (!formData.ws_emailid.trim()) {
             newErrors.ws_emailid = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formData.ws_emailid)) {
@@ -62,7 +63,7 @@ const CustomerForm = observer(() => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!validateForm()) return;
 
         const success = await createCustomer(formData);
@@ -71,7 +72,7 @@ const CustomerForm = observer(() => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <LoadingComponent content="Loading customer..." />;
 
     return (
         <div className="p-6">

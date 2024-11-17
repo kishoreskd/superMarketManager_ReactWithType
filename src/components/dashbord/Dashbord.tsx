@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useStore } from "../../app/stores/store";
 import { useEffect } from "react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import LoadingComponent from "../../layout/LoadingContainer";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -14,7 +15,7 @@ const Dashboard = observer(() => {
         loadDailySales();
     }, [loadBestSelling, loadDailySales]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <LoadingComponent content="Loading dashboard..." />;
 
     // Take only top 4 best selling items
     const topFourItems = bestSellingItems.slice(0, 4).map(item => ({

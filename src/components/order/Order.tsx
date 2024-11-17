@@ -1,57 +1,30 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../app/stores/store';
 import Pagination from '../../app/common/pagination/Pagination';
 import { usePagination } from '../../app/common/pagination/usePagination';
+import { Order as OrderType } from '../../app/models/Order';
+import LoadingComponent from '../../layout/LoadingContainer';
 
-interface IOrder {
-    id: number;
-    customerId: number;
-    customerName: string;
-    itemId: number;
-    itemName: string;
-    quantity: number;
-    coupon?: string;
-    orderTotal: number;
-    transactionCode: string;
-    orderStatus: 'Pending' | 'Received' | 'Cancelled';
-}
+const Order = observer(() => {
+    const { orderStore } = useStore();
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = 
+        usePagination<OrderType>(orderStore.ordersList);
 
-const Order = () => {
-    const [orders, setOrders] = useState<IOrder[]>([
-        // Dummy data - replace with your actual API call
-        {
-            id: 1,
-            customerId: 101,
-            customerName: 'John Doe',
-            itemId: 201,
-            itemName: 'Product A',
-            quantity: 2,
-            coupon: 'SAVE10',
-            orderTotal: 199.99,
-            transactionCode: 'TRX123456',
-            orderStatus: 'Pending'
-        },
-        // Add more dummy orders as needed
-    ]);
+    useEffect(() => {
+        orderStore.loadOrders();
+    }, [orderStore]);
 
-    // Add pagination hook
-    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(orders);
-
-    const handleStatusUpdate = async (orderId: number, newStatus: 'Received' | 'Cancelled') => {
+    const handleStatusUpdate = async (orderId: string, newStatus: OrderType['ws_order_status']) => {
         try {
-            // API call to update order status
-            // await updateOrderStatus(orderId, newStatus);
-            
-            // Update local state
-            setOrders(orders.map(order => 
-                order.id === orderId 
-                    ? { ...order, orderStatus: newStatus }
-                    : order
-            ));
+            await orderStore.updateOrderStatus(orderId, newStatus);
         } catch (error) {
             console.error('Error updating order status:', error);
         }
     };
+
+    if (orderStore.loading) return <LoadingComponent content="Loading orders..." />;
 
     return (
         <div className="p-6">
@@ -70,57 +43,53 @@ const Order = () => {
                     <thead>
                         <tr className="bg-gray-50 border-b">
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coupon</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Transaction</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {currentItems.map((order) => (
-                            <tr key={order.id}>
-                                <td className="px-6 py-4 whitespace-nowrap">{order.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {order.customerName} (ID: {order.customerId})
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {order.itemName} (ID: {order.itemId})
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{order.quantity}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{order.coupon || '-'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">${order.orderTotal}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{order.transactionCode}</td>
+                            <tr key={order.ws_order_id}>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_order_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_customerid}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_item_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_quantity}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_coupon || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">${order.ws_order_total}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.ws_transaction_date}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 rounded text-sm ${
-                                        order.orderStatus === 'Received' ? 'bg-green-100 text-green-800' :
-                                        order.orderStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                        order.ws_order_status === 'RECEIVED' ? 'bg-green-100 text-green-800' :
+                                        order.ws_order_status === 'CANCEL' ? 'bg-red-100 text-red-800' :
                                         'bg-yellow-100 text-yellow-800'
                                     }`}>
-                                        {order.orderStatus}
+                                        {order.ws_order_status}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-2">
                                         <Link 
-                                            to={`/orders/edit/${order.id}`}
+                                            to={`/orders/edit/${order.ws_order_id}`}
                                             className="text-blue-500 hover:text-blue-700"
                                         >
                                             Edit
                                         </Link>
-                                        {order.orderStatus === 'Pending' && (
+                                        {order.ws_order_status === 'ORDERED' && (
                                             <>
                                                 <button 
-                                                    onClick={() => handleStatusUpdate(order.id, 'Received')}
+                                                    onClick={() => handleStatusUpdate(order.ws_order_id, 'RECEIVED')}
                                                     className="text-green-500 hover:text-green-700"
                                                 >
                                                     Receive
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleStatusUpdate(order.id, 'Cancelled')}
+                                                    onClick={() => handleStatusUpdate(order.ws_order_id, 'CANCEL')}
                                                     className="text-red-500 hover:text-red-700"
                                                 >
                                                     Cancel
@@ -134,7 +103,6 @@ const Order = () => {
                     </tbody>
                 </table>
 
-                {/* Add Pagination Component */}
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}
@@ -144,6 +112,6 @@ const Order = () => {
             </div>
         </div>
     );
-};
+});
 
 export default Order;

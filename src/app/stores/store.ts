@@ -8,17 +8,19 @@ import DashboardStore from "./DashboardStore";
 import CustomerStore from "./CustomerStore";
 import CouponStore from "./CouponStore";
 import StaffStore from "./StaffStore";
+import OrderStore from "./OrderStore";
 
 interface Store {
     inventoryStore: InventoryStore;
     modalStore: ModalStore;
     commonStore: CommonStore;
-    authStore: AuthStore;
+    authStore: AuthStore;           
     feedbackStore: FeedbackStore;
     dashboardStore: DashboardStore;
     customerStore: CustomerStore;
     couponStore: CouponStore;
     staffStore: StaffStore;
+    orderStore: OrderStore;
     // Add other stores here as needed
 }   
 
@@ -32,6 +34,7 @@ export const store: Store = {
     customerStore: new CustomerStore(),
     couponStore: new CouponStore(),
     staffStore: new StaffStore(),
+    orderStore: new OrderStore(),
     // Initialize other stores here
 };
 
