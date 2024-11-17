@@ -10,9 +10,9 @@ export const routes: RouteObject[] = [
     {
         path: "dashboard",
         element:
-            <RequireAuth>
+            // <RequireAuth>
                 <h1>Dashbord</h1>
-            </RequireAuth>
+            // </RequireAuth>
     }
 ]
 
