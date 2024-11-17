@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { Login } from "../models/Login";
-import agent from "../Services/agent";
+import agent from "../services/agent";
 import { store } from "./store";
 import { CreateAccount } from "../models/CreateAccount";
 import { router } from "../router/Routes";

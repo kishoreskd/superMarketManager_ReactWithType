@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Pagination from '../../app/common/pagination/Pagination';
+import { usePagination } from '../../app/common/pagination/usePagination';
 
 interface IOrder {
     id: number;
@@ -31,6 +33,9 @@ const Order = () => {
         },
         // Add more dummy orders as needed
     ]);
+
+    // Add pagination hook
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(orders);
 
     const handleStatusUpdate = async (orderId: number, newStatus: 'Received' | 'Cancelled') => {
         try {
@@ -76,7 +81,7 @@ const Order = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {orders.map((order) => (
+                        {currentItems.map((order) => (
                             <tr key={order.id}>
                                 <td className="px-6 py-4 whitespace-nowrap">{order.id}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -128,6 +133,14 @@ const Order = () => {
                         ))}
                     </tbody>
                 </table>
+
+                {/* Add Pagination Component */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={paginate}
+                />
             </div>
         </div>
     );

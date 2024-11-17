@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Pagination from '../../app/common/pagination/Pagination';
+import { usePagination } from '../../app/common/pagination/usePagination';
+import { observer } from 'mobx-react-lite';
 
 interface ICoupon {
     id: number;
@@ -12,8 +15,7 @@ interface ICoupon {
 }
 
 const Coupon = () => {
-    const [coupons, setCoupons] = useState<ICoupon[]>([
-        // Dummy data - replace with your actual API call
+    const [coupons] = useState<ICoupon[]>([
         {
             id: 1,
             code: 'SUMMER2024',
@@ -26,19 +28,22 @@ const Coupon = () => {
         // Add more dummy coupons as needed
     ]);
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this coupon?')) {
-            try {
-                // API call to delete coupon
-                // await deleteCoupon(id);
+    // Add pagination hook
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(coupons);
+
+    // const handleDelete = async (id: number) => {
+    //     if (window.confirm('Are you sure you want to delete this coupon?')) {
+    //         try {
+    //             // API call to delete coupon
+    //             // await deleteCoupon(id);
                 
-                // Update local state
-                setCoupons(coupons.filter(coupon => coupon.id !== id));
-            } catch (error) {
-                console.error('Error deleting coupon:', error);
-            }
-        }
-    };
+    //             // Update local state
+    //             setCoupons(coupons.filter(coupon => coupon.id !== id));
+    //         } catch (error) {
+    //             console.error('Error deleting coupon:', error);
+    //         }
+    //     }
+    // };
 
     const isExpired = (endDate: string) => {
         return new Date(endDate) < new Date();
@@ -70,7 +75,7 @@ const Coupon = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {coupons.map((coupon) => (
+                        {currentItems.map((coupon) => (
                             <tr key={coupon.id}>
                                 <td className="px-6 py-4 whitespace-nowrap font-medium">{coupon.code}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{coupon.campaignName}</td>
@@ -101,7 +106,6 @@ const Coupon = () => {
                                             Edit
                                         </Link>
                                         <button 
-                                            onClick={() => handleDelete(coupon.id)}
                                             className="text-red-500 hover:text-red-700"
                                         >
                                             Delete
@@ -112,9 +116,17 @@ const Coupon = () => {
                         ))}
                     </tbody>
                 </table>
+
+                {/* Add Pagination Component */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={paginate}
+                />
             </div>
         </div>
     );
 };
 
-export default Coupon;
+export default observer(Coupon);

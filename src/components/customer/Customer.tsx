@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Pagination from '../../app/common/pagination/Pagination';
+import { usePagination } from '../../app/common/pagination/usePagination';
 
 interface ICustomer {
     id: number;
@@ -9,11 +11,17 @@ interface ICustomer {
 }
 
 const Customer = () => {
-    const [customers, setCustomers] = useState<ICustomer[]>([
+    const [customers] = useState<ICustomer[]>([
         // Dummy data - replace with your actual API call
         { id: 1, name: 'John Doe', phone: '123-456-7890', email: 'john@example.com' },
         { id: 2, name: 'Jane Smith', phone: '098-765-4321', email: 'jane@example.com' },
+        { id: 3, name: 'Bob Johnson', phone: '555-555-5555', email: 'bob@example.com' },
+        { id: 4, name: 'Alice Brown', phone: '444-444-4444', email: 'alice@example.com' },
+        // Add more dummy data to test pagination
     ]);
+
+    // Add pagination hook
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(customers);
 
     return (
         <div className="p-6">
@@ -27,7 +35,7 @@ const Customer = () => {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white rounded-lg shadow overflow-x-auto">
                 <table className="min-w-full">
                     <thead>
                         <tr className="bg-gray-50 border-b">
@@ -39,30 +47,40 @@ const Customer = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {customers.map((customer) => (
+                        {currentItems.map((customer) => (
                             <tr key={customer.id}>
                                 <td className="px-6 py-4 whitespace-nowrap">{customer.id}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{customer.name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{customer.phone}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{customer.email}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <Link 
-                                        to={`/customers/edit/${customer.id}`}
-                                        className="text-blue-500 hover:text-blue-700 mr-4"
-                                    >
-                                        Edit
-                                    </Link>
-                                    <button 
-                                        onClick={() => {/* Handle delete */}}
-                                        className="text-red-500 hover:text-red-700"
-                                    >
-                                        Delete
-                                    </button>
+                                    <div className="flex space-x-3">
+                                        <Link 
+                                            to={`/customers/edit/${customer.id}`}
+                                            className="text-blue-500 hover:text-blue-700"
+                                        >
+                                            Edit
+                                        </Link>
+                                        <button 
+                                            onClick={() => {/* Handle delete */}}
+                                            className="text-red-500 hover:text-red-700"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+
+                {/* Add Pagination Component */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={paginate}
+                />
             </div>
         </div>
     );
