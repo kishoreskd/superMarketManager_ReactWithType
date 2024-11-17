@@ -94,4 +94,10 @@ export default class AuthStore {
             throw error;
         }
     }
+
+    logout = () => {
+        store.commonStore.setToken(null);
+        this.loginState = false;
+        router.navigate('/');
+    }
 }       
