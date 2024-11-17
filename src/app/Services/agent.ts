@@ -106,6 +106,7 @@ const CustomerApi = {
         request.post('/pmai019', {
             PMAI019Operation: {
                 ws_custins_recin: {
+                    ws_customer_id: customerData.ws_customer_id,
                     ws_customername: customerData.ws_customername,
                     ws_emailid: customerData.ws_emailid,
                     ws_phoneno: customerData.ws_phoneno

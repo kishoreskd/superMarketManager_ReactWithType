@@ -5,7 +5,7 @@ import agent from "../services/agent";
 export default class OrderStore {
     orderRegistry = new Map<string, Order>();
     loading = false;
-    
+
     constructor() {
         makeAutoObservable(this);
     }
@@ -13,11 +13,12 @@ export default class OrderStore {
     loadOrders = async () => {
         try {
             this.loading = true;
-            const result = await agent.OrderApi.getOrders() as any;
+            const response = await agent.OrderApi.getOrders() as any;
             runInAction(() => {
+                const result = response.PMAI009OperationResponse.ws_order_list_out.ws_order_list;
                 this.orderRegistry.clear();
                 result.forEach((order: Order) => {
-                    this.orderRegistry.set(order.ws_order_id, order) ;
+                    this.orderRegistry.set(order.ws_order_id, order);
                 });
             });
         } catch (error) {
@@ -34,8 +35,9 @@ export default class OrderStore {
             this.loading = true;
             const result = await agent.OrderApi.placeOrder(orderData) as any;
             runInAction(() => {
-                if (result.ws_order_id) {
-                    this.orderRegistry.set(result.ws_order_id, result);
+                const response = result.PMAI010OperationResponse.ws_place_order_output;
+                if (response.ws_order_id) {
+                    this.orderRegistry.set(response.ws_order_id, response);
                 }
             });
             return result;
