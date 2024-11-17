@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.App {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .flex {
+    display: flex;
+  }
+  
+  .flex-1 {
+    flex: 1;
+  }
+  
+  .sidebar {
+    width: 250px;
+    min-height: 100vh;
+    border-right: 1px solid #e5e7eb;
+    background-color: white;
+    padding: 1rem;
+  }
