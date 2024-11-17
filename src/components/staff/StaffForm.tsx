@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../../app/stores/store';
+import { Staff } from '../../app/models/Staff';
 
 interface StaffFormData {
     ws_employee_id: string;
@@ -9,11 +12,12 @@ interface StaffFormData {
     ws_role: 'MANAGER' | 'BILLER' | 'SUPERVISOR' | 'FACILITY';
 }
 
-const StaffForm = () => {
+const StaffForm = observer(() => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [errors, setErrors] = useState<Partial<StaffFormData>>({});
-
+    const { staffStore } = useStore();
+    const [errors, setErrors] = useState<Partial<Staff>>({});
+    
     const [formData, setFormData] = useState<StaffFormData>({
         ws_employee_id: '',
         ws_employee_name: '',
@@ -42,7 +46,7 @@ const StaffForm = () => {
         // Other required field validations
         if (!formData.ws_employee_name) newErrors.ws_employee_name = 'Name is required';
         if (!formData.ws_employee_phno) newErrors.ws_employee_phno = 'Phone number is required';
-        if (!formData.ws_role) newErrors.ws_role = 'Role is required';
+        // if (!formData.ws_role) newErrors.ws_role = 'Role is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -54,8 +58,11 @@ const StaffForm = () => {
         if (!validateForm()) return;
 
         try {
-            // API call to save staff member
-            // await saveStaff(formData);
+            if (id) {
+                await staffStore.updateStaff(formData);
+            } else {
+                await staffStore.createStaff(formData);
+            }
             navigate('/staff');
         } catch (error) {
             console.error('Error saving staff member:', error);
@@ -167,6 +174,6 @@ const StaffForm = () => {
             </form>
         </div>
     );
-};
+});
 
 export default StaffForm;

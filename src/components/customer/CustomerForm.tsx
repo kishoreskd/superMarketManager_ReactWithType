@@ -1,32 +1,35 @@
+import { observer } from "mobx-react-lite";
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useStore } from '../../app/stores/store';
+import { Customer } from '../../app/models/Customer';
 
-interface ICustomerForm {
-    name: string;
-    phone: string;
-    email: string;
-}
-
-const CustomerForm = () => {
+const CustomerForm = observer(() => {
     const navigate = useNavigate();
-    const { id } = useParams(); // For edit mode
-    const isEditMode = !!id;
+    const { id } = useParams();
+    const { customerStore } = useStore();
+    const { createCustomer, loadCustomer, selectedCustomer, loading } = customerStore;
 
-    const [formData, setFormData] = useState<ICustomerForm>({
-        name: '',
-        phone: '',
-        email: '',
+    const [formData, setFormData] = useState<Customer>({
+        ws_customer_id: '',
+        ws_customername: '',
+        ws_phoneno: '',
+        ws_emailid: '',
     });
 
-    const [errors, setErrors] = useState<Partial<ICustomerForm>>({});
+    const [errors, setErrors] = useState<Partial<Customer>>({});
 
     useEffect(() => {
-        if (isEditMode) {
-            // Fetch customer data if in edit mode
-            // Replace with your actual API call
-            // fetchCustomer(id).then(data => setFormData(data));
+        if (id) {
+            loadCustomer(id);
         }
-    }, [id]);
+    }, [id, loadCustomer]);
+
+    useEffect(() => {
+        if (selectedCustomer) {
+            setFormData(selectedCustomer);
+        }
+    }, [selectedCustomer]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -37,20 +40,20 @@ const CustomerForm = () => {
     };
 
     const validateForm = () => {
-        const newErrors: Partial<ICustomerForm> = {};
+        const newErrors: Partial<Customer> = {};
         
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
+        if (!formData.ws_customername.trim()) {
+            newErrors.ws_customername = 'Name is required';
         }
         
-        if (!formData.phone.trim()) {
-            newErrors.phone = 'Phone is required';
+        if (!formData.ws_phoneno.trim()) {
+            newErrors.ws_phoneno = 'Phone is required';
         }
         
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Invalid email format';
+        if (!formData.ws_emailid.trim()) {
+            newErrors.ws_emailid = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.ws_emailid)) {
+            newErrors.ws_emailid = 'Invalid email format';
         }
 
         setErrors(newErrors);
@@ -62,24 +65,18 @@ const CustomerForm = () => {
         
         if (!validateForm()) return;
 
-        try {
-            // Replace with your actual API call
-            // if (isEditMode) {
-            //     await updateCustomer(id, formData);
-            // } else {
-            //     await createCustomer(formData);
-            // }
-            
+        const success = await createCustomer(formData);
+        if (success) {
             navigate('/customers');
-        } catch (error) {
-            console.error('Error saving customer:', error);
         }
     };
+
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">
-                {isEditMode ? 'Edit Customer' : 'Add New Customer'}
+                {id ? 'Edit Customer' : 'Add New Customer'}
             </h1>
 
             <form onSubmit={handleSubmit} className="max-w-lg bg-white p-6 rounded-lg shadow">
@@ -89,12 +86,12 @@ const CustomerForm = () => {
                     </label>
                     <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="ws_customername"
+                        value={formData.ws_customername}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_customername ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                    {errors.ws_customername && <p className="text-red-500 text-xs mt-1">{errors.ws_customername}</p>}
                 </div>
 
                 <div className="mb-4">
@@ -103,12 +100,12 @@ const CustomerForm = () => {
                     </label>
                     <input
                         type="tel"
-                        name="phone"
-                        value={formData.phone}
+                        name="ws_phoneno"
+                        value={formData.ws_phoneno}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_phoneno ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                    {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                    {errors.ws_phoneno && <p className="text-red-500 text-xs mt-1">{errors.ws_phoneno}</p>}
                 </div>
 
                 <div className="mb-6">
@@ -117,12 +114,12 @@ const CustomerForm = () => {
                     </label>
                     <input
                         type="email"
-                        name="email"
-                        value={formData.email}
+                        name="ws_emailid"
+                        value={formData.ws_emailid}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_emailid ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                    {errors.ws_emailid && <p className="text-red-500 text-xs mt-1">{errors.ws_emailid}</p>}
                 </div>
 
                 <div className="flex justify-end gap-4">
@@ -137,12 +134,12 @@ const CustomerForm = () => {
                         type="submit"
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
-                        {isEditMode ? 'Update Customer' : 'Add Customer'}
+                        {id ? 'Update Customer' : 'Add Customer'}
                     </button>
                 </div>
             </form>
         </div>
     );
-};
+});
 
 export default CustomerForm;

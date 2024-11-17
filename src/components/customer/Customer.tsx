@@ -1,27 +1,22 @@
+import { observer } from "mobx-react-lite";
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useStore } from '../../app/stores/store';
 import Pagination from '../../app/common/pagination/Pagination';
 import { usePagination } from '../../app/common/pagination/usePagination';
 
-interface ICustomer {
-    id: number;
-    name: string;
-    phone: string;
-    email: string;
-}
+const Customer = observer(() => {
+    const { customerStore } = useStore();
+    const { customers, loading, loadCustomers } = customerStore;
 
-const Customer = () => {
-    const [customers] = useState<ICustomer[]>([
-        // Dummy data - replace with your actual API call
-        { id: 1, name: 'John Doe', phone: '123-456-7890', email: 'john@example.com' },
-        { id: 2, name: 'Jane Smith', phone: '098-765-4321', email: 'jane@example.com' },
-        { id: 3, name: 'Bob Johnson', phone: '555-555-5555', email: 'bob@example.com' },
-        { id: 4, name: 'Alice Brown', phone: '444-444-4444', email: 'alice@example.com' },
-        // Add more dummy data to test pagination
-    ]);
+    useEffect(() => {
+        loadCustomers();
+    }, [loadCustomers]);
 
-    // Add pagination hook
-    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(customers);
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = 
+        usePagination(customers);
+
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="p-6">
@@ -48,25 +43,19 @@ const Customer = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {currentItems.map((customer) => (
-                            <tr key={customer.id}>
-                                <td className="px-6 py-4 whitespace-nowrap">{customer.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{customer.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{customer.phone}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{customer.email}</td>
+                            <tr key={customer.ws_customer_id}>
+                                <td className="px-6 py-4 whitespace-nowrap">{customer.ws_customer_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{customer.ws_customername}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{customer.ws_phoneno}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{customer.ws_emailid}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-3">
                                         <Link 
-                                            to={`/customers/edit/${customer.id}`}
+                                            to={`/customers/edit/${customer.ws_customer_id}`}
                                             className="text-blue-500 hover:text-blue-700"
                                         >
                                             Edit
                                         </Link>
-                                        <button 
-                                            onClick={() => {/* Handle delete */}}
-                                            className="text-red-500 hover:text-red-700"
-                                        >
-                                            Delete
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -74,7 +63,6 @@ const Customer = () => {
                     </tbody>
                 </table>
 
-                {/* Add Pagination Component */}
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}
@@ -84,6 +72,6 @@ const Customer = () => {
             </div>
         </div>
     );
-};
+});
 
 export default Customer;

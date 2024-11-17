@@ -1,53 +1,22 @@
+import { observer } from "mobx-react-lite";
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useStore } from '../../app/stores/store';
 import Pagination from '../../app/common/pagination/Pagination';
 import { usePagination } from '../../app/common/pagination/usePagination';
-import { observer } from 'mobx-react-lite';
 
-interface ICoupon {
-    id: number;
-    code: string;
-    campaignName: string;
-    percentage: number;
-    startDate: string;
-    endDate: string;
-    isActive: boolean;
-}
+const Coupon = observer(() => {
+    const { couponStore } = useStore();
+    const { coupons, loading, loadCoupons, isExpired } = couponStore;
 
-const Coupon = () => {
-    const [coupons] = useState<ICoupon[]>([
-        {
-            id: 1,
-            code: 'SUMMER2024',
-            campaignName: 'Summer Sale 2024',
-            percentage: 20,
-            startDate: '2024-06-01',
-            endDate: '2024-08-31',
-            isActive: true
-        },
-        // Add more dummy coupons as needed
-    ]);
+    useEffect(() => {
+        loadCoupons();
+    }, [loadCoupons]);
 
-    // Add pagination hook
-    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = usePagination(coupons);
+    const { currentItems, currentPage, itemsPerPage, totalItems, paginate } = 
+        usePagination(coupons);
 
-    // const handleDelete = async (id: number) => {
-    //     if (window.confirm('Are you sure you want to delete this coupon?')) {
-    //         try {
-    //             // API call to delete coupon
-    //             // await deleteCoupon(id);
-                
-    //             // Update local state
-    //             setCoupons(coupons.filter(coupon => coupon.id !== id));
-    //         } catch (error) {
-    //             console.error('Error deleting coupon:', error);
-    //         }
-    //     }
-    // };
-
-    const isExpired = (endDate: string) => {
-        return new Date(endDate) < new Date();
-    };
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="p-6">
@@ -76,40 +45,35 @@ const Coupon = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {currentItems.map((coupon) => (
-                            <tr key={coupon.id}>
-                                <td className="px-6 py-4 whitespace-nowrap font-medium">{coupon.code}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{coupon.campaignName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{coupon.percentage}%</td>
+                            <tr key={coupon.ws_coupon_id}>
+                                <td className="px-6 py-4 whitespace-nowrap font-medium">{coupon.ws_coupon_code}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{coupon.ws_campaigns_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{coupon.ws_offer_percent}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {new Date(coupon.startDate).toLocaleDateString()}
+                                    {new Date(coupon.ws_start_date).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {new Date(coupon.endDate).toLocaleDateString()}
+                                    {new Date(coupon.ws_end_date).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 rounded text-sm ${
-                                        !coupon.isActive ? 'bg-red-100 text-red-800' :
-                                        isExpired(coupon.endDate) ? 'bg-gray-100 text-gray-800' :
+                                        !coupon.ws_is_active ? 'bg-red-100 text-red-800' :
+                                        isExpired(coupon.ws_end_date) ? 'bg-gray-100 text-gray-800' :
                                         'bg-green-100 text-green-800'
                                     }`}>
-                                        {!coupon.isActive ? 'Inactive' :
-                                         isExpired(coupon.endDate) ? 'Expired' :
+                                        {!coupon.ws_is_active ? 'Inactive' :
+                                         isExpired(coupon.ws_end_date) ? 'Expired' :
                                          'Active'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex space-x-3">
                                         <Link 
-                                            to={`/coupons/edit/${coupon.id}`}
+                                            to={`/coupons/edit/${coupon.ws_coupon_id}`}
                                             className="text-blue-500 hover:text-blue-700"
                                         >
                                             Edit
                                         </Link>
-                                        <button 
-                                            className="text-red-500 hover:text-red-700"
-                                        >
-                                            Delete
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -117,7 +81,6 @@ const Coupon = () => {
                     </tbody>
                 </table>
 
-                {/* Add Pagination Component */}
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}
@@ -127,6 +90,6 @@ const Coupon = () => {
             </div>
         </div>
     );
-};
+});
 
-export default observer(Coupon);
+export default Coupon;

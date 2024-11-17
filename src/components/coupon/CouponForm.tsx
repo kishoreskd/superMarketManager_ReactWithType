@@ -1,70 +1,59 @@
+import { observer } from "mobx-react-lite";
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useStore } from '../../app/stores/store';
+import { Coupon } from '../../app/models/Coupon';
 
-interface ICouponForm {
-    code: string;
-    campaignName: string;
-    percentage: string;
-    startDate: string;
-    endDate: string;
-    isActive: boolean;
-}
-
-const CouponForm = () => {
+const CouponForm = observer(() => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const isEditMode = !!id;
+    const { couponStore } = useStore();
+    const { createCoupon, updateCoupon, loading } = couponStore;
 
-    const [formData, setFormData] = useState<ICouponForm>({
-        code: '',
-        campaignName: '',
-        percentage: '',
-        startDate: '',
-        endDate: '',
-        isActive: true
+    const [formData, setFormData] = useState<Coupon>({
+        ws_campaigns_name: '',
+        ws_coupon_code: '',
+        ws_start_date: '',
+        ws_end_date: '',
+        ws_offer_percent: 0,
+        ws_is_active: true
     });
 
-    const [errors, setErrors] = useState<Partial<ICouponForm>>({});
-
-    useEffect(() => {
-        if (isEditMode) {
-            // Fetch coupon data if in edit mode
-            // Replace with your actual API call
-            // fetchCoupon(id).then(data => setFormData(data));
-        }
-    }, [id]);
+    const [errors, setErrors] = useState<Partial<Coupon>>({});
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: type === 'checkbox' ? checked :
+                name === 'ws_offer_percent' ? Number(value) :
+                    value
         }));
     };
 
     const validateForm = () => {
-        const newErrors: Partial<ICouponForm> = {};
-        
-        if (!formData.code.trim()) {
-            newErrors.code = 'Coupon code is required';
+        const newErrors: Partial<Coupon> = {};
+
+        if (!formData.ws_coupon_code.trim()) {
+            newErrors.ws_coupon_code = 'Coupon code is required';
         }
-        
-        if (!formData.campaignName.trim()) {
-            newErrors.campaignName = 'Campaign name is required';
+
+        if (!formData.ws_campaigns_name.trim()) {
+            newErrors.ws_campaigns_name = 'Campaign name is required';
         }
-        
-        if (!formData.percentage || Number(formData.percentage) <= 0 || Number(formData.percentage) > 100) {
-            newErrors.percentage = 'Percentage must be between 1 and 100';
+
+        // if (formData.ws_offer_percent <= 0 || formData.ws_offer_percent > 100) {
+        //     newErrors.ws_offer_percent = 'Percentage must be between 1 and 100';
+        // }
+
+        if (!formData.ws_start_date) {
+            newErrors.ws_start_date = 'Start date is required';
         }
-        
-        if (!formData.startDate) {
-            newErrors.startDate = 'Start date is required';
-        }
-        
-        if (!formData.endDate) {
-            newErrors.endDate = 'End date is required';
-        } else if (new Date(formData.endDate) <= new Date(formData.startDate)) {
-            newErrors.endDate = 'End date must be after start date';
+
+        if (!formData.ws_end_date) {
+            newErrors.ws_end_date = 'End date is required';
+        } else if (new Date(formData.ws_end_date) <= new Date(formData.ws_start_date)) {
+            newErrors.ws_end_date = 'End date must be after start date';
         }
 
         setErrors(newErrors);
@@ -73,27 +62,24 @@ const CouponForm = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!validateForm()) return;
 
-        try {
-            // Replace with your actual API call
-            // if (isEditMode) {
-            //     await updateCoupon(id, formData);
-            // } else {
-            //     await createCoupon(formData);
-            // }
-            
+        const success = id
+            ? await updateCoupon(formData)
+            : await createCoupon(formData);
+
+        if (success) {
             navigate('/coupons');
-        } catch (error) {
-            console.error('Error saving coupon:', error);
         }
     };
+
+    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">
-                {isEditMode ? 'Edit Coupon' : 'Add New Coupon'}
+                {id ? 'Edit Coupon' : 'Add New Coupon'}
             </h1>
 
             <form onSubmit={handleSubmit} className="max-w-lg bg-white p-6 rounded-lg shadow">
@@ -103,13 +89,13 @@ const CouponForm = () => {
                     </label>
                     <input
                         type="text"
-                        name="code"
-                        value={formData.code}
+                        name="ws_coupon_code"
+                        value={formData.ws_coupon_code}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.code ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_coupon_code ? 'border-red-500' : 'border-gray-300'}`}
                         placeholder="e.g., SUMMER2024"
                     />
-                    {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code}</p>}
+                    {errors.ws_coupon_code && <p className="text-red-500 text-xs mt-1">{errors.ws_coupon_code}</p>}
                 </div>
 
                 <div className="mb-4">
@@ -118,13 +104,13 @@ const CouponForm = () => {
                     </label>
                     <input
                         type="text"
-                        name="campaignName"
-                        value={formData.campaignName}
+                        name="ws_campaigns_name"
+                        value={formData.ws_campaigns_name}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.campaignName ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_campaigns_name ? 'border-red-500' : 'border-gray-300'}`}
                         placeholder="e.g., Summer Sale 2024"
                     />
-                    {errors.campaignName && <p className="text-red-500 text-xs mt-1">{errors.campaignName}</p>}
+                    {errors.ws_campaigns_name && <p className="text-red-500 text-xs mt-1">{errors.ws_campaigns_name}</p>}
                 </div>
 
                 <div className="mb-4">
@@ -133,15 +119,15 @@ const CouponForm = () => {
                     </label>
                     <input
                         type="number"
-                        name="percentage"
-                        value={formData.percentage}
+                        name="ws_offer_percent"
+                        value={formData.ws_offer_percent}
                         onChange={handleChange}
                         min="1"
                         max="100"
-                        className={`w-full px-3 py-2 border rounded ${errors.percentage ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_offer_percent ? 'border-red-500' : 'border-gray-300'}`}
                         placeholder="e.g., 20"
                     />
-                    {errors.percentage && <p className="text-red-500 text-xs mt-1">{errors.percentage}</p>}
+                    {errors.ws_offer_percent && <p className="text-red-500 text-xs mt-1">{errors.ws_offer_percent}</p>}
                 </div>
 
                 <div className="mb-4">
@@ -150,12 +136,12 @@ const CouponForm = () => {
                     </label>
                     <input
                         type="date"
-                        name="startDate"
-                        value={formData.startDate}
+                        name="ws_start_date"
+                        value={formData.ws_start_date}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.startDate ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_start_date ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                    {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
+                    {errors.ws_start_date && <p className="text-red-500 text-xs mt-1">{errors.ws_start_date}</p>}
                 </div>
 
                 <div className="mb-4">
@@ -164,20 +150,20 @@ const CouponForm = () => {
                     </label>
                     <input
                         type="date"
-                        name="endDate"
-                        value={formData.endDate}
+                        name="ws_end_date"
+                        value={formData.ws_end_date}
                         onChange={handleChange}
-                        className={`w-full px-3 py-2 border rounded ${errors.endDate ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded ${errors.ws_end_date ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                    {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
+                    {errors.ws_end_date && <p className="text-red-500 text-xs mt-1">{errors.ws_end_date}</p>}
                 </div>
 
                 <div className="mb-6">
                     <label className="flex items-center">
                         <input
                             type="checkbox"
-                            name="isActive"
-                            checked={formData.isActive}
+                            name="ws_is_active"
+                            checked={formData.ws_is_active}
                             onChange={handleChange}
                             className="mr-2"
                         />
@@ -197,12 +183,12 @@ const CouponForm = () => {
                         type="submit"
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
-                        {isEditMode ? 'Update Coupon' : 'Create Coupon'}
+                        {id ? 'Update Coupon' : 'Create Coupon'}
                     </button>
                 </div>
             </form>
         </div>
     );
-};
+});
 
 export default CouponForm;
